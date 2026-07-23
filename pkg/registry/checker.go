@@ -329,12 +329,13 @@ func applyMirror(originalImage string, mirrors map[string]string) string {
 }
 
 func (rc *Checker) checkImageAvailability(log *logrus.Entry, imageName string, kc authn.Keychain) (availMode store.AvailabilityMode) {
+	defaultRegistry := rc.config.defaultRegistry
 	if len(rc.config.mirrorsMap) > 0 {
-		rc.config.defaultRegistry = applyMirror(rc.config.defaultRegistry, rc.config.mirrorsMap)
+		defaultRegistry = applyMirror(rc.config.defaultRegistry, rc.config.mirrorsMap)
 		imageName = applyMirror(imageName, rc.config.mirrorsMap)
 	}
 
-	ref, err := parseImageName(imageName, rc.config.defaultRegistry, rc.config.plainHTTP)
+	ref, err := parseImageName(imageName, defaultRegistry, rc.config.plainHTTP)
 	if err != nil {
 		return checkImageNameParseErr(log, err)
 	}
