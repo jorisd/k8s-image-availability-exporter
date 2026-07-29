@@ -6,6 +6,12 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"regexp"
+	"strings"
+	"time"
+
 	"github.com/flant/k8s-image-availability-exporter/pkg/providers"
 	"github.com/flant/k8s-image-availability-exporter/pkg/providers/amazon"
 	"github.com/flant/k8s-image-availability-exporter/pkg/providers/k8s"
@@ -14,11 +20,6 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/cache"
-	"net/http"
-	"os"
-	"regexp"
-	"strings"
-	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -317,7 +318,7 @@ func (rc *Checker) Check(imageName string) store.AvailabilityMode {
 	return rc.checkImageAvailability(log, imageName, keyChain)
 }
 
-func getImageWithMirror(originalImage string, mirrors map[string]string) string {
+func applyMirror(originalImage string, mirrors map[string]string) string {
 	for originalRepo, mirrorRepo := range mirrors {
 		if strings.HasPrefix(originalImage, originalRepo) {
 			return strings.Replace(originalImage, originalRepo, mirrorRepo, 1)
@@ -328,11 +329,13 @@ func getImageWithMirror(originalImage string, mirrors map[string]string) string 
 }
 
 func (rc *Checker) checkImageAvailability(log *logrus.Entry, imageName string, kc authn.Keychain) (availMode store.AvailabilityMode) {
+	defaultRegistry := rc.config.defaultRegistry
 	if len(rc.config.mirrorsMap) > 0 {
-		imageName = getImageWithMirror(imageName, rc.config.mirrorsMap)
+		defaultRegistry = applyMirror(rc.config.defaultRegistry, rc.config.mirrorsMap)
+		imageName = applyMirror(imageName, rc.config.mirrorsMap)
 	}
 
-	ref, err := parseImageName(imageName, rc.config.defaultRegistry, rc.config.plainHTTP)
+	ref, err := parseImageName(imageName, defaultRegistry, rc.config.plainHTTP)
 	if err != nil {
 		return checkImageNameParseErr(log, err)
 	}
