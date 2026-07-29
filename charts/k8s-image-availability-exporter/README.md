@@ -1,6 +1,6 @@
 # k8s-image-availability-exporter
 
-![Version: 0.18.0](https://img.shields.io/badge/Version-0.18.0-informational?style=flat-square) ![AppVersion: 0.14.0](https://img.shields.io/badge/AppVersion-0.14.0-informational?style=flat-square)
+![Version: 0.19.0](https://img.shields.io/badge/Version-0.19.0-informational?style=flat-square) ![AppVersion: 0.14.0](https://img.shields.io/badge/AppVersion-0.14.0-informational?style=flat-square)
 
 Application for monitoring the cluster workloads image presence in a container registry.
 
@@ -61,8 +61,9 @@ This chart bootstraps a [k8s-image-availability-exporter](https://github.com/fla
 | prometheusRule.enabled | bool | `false` | Create [Prometheus Operator](https://github.com/coreos/prometheus-operator) prometheusRule resource |
 | prometheusRule.defaultGroupsEnabled | bool | `true` | Setup default alerts (works only if prometheusRule.enabled is set to true) |
 | prometheusRule.for | string | `""` | Optional duration for which the condition must be true before firing. If not set, alerts fire immediately. |
-Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 | prometheusRule.additionalGroups | list | `[]` | Additional PrometheusRule groups |
+
+Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
 ```bash
 helm install my-release k8s-image-availability-exporter --set k8sImageAvailabilityExporter.replicas=2
