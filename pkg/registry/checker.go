@@ -88,6 +88,7 @@ func NewChecker(
 	defaultRegistry string,
 	namespaceLabel string,
 	mirrorsMap map[string]string,
+	awsRegion string,
 ) *Checker {
 	informerFactory := informers.NewSharedInformerFactory(kubeClient, time.Hour)
 
@@ -261,7 +262,7 @@ func NewChecker(
 
 	rc.imageStore.RunGC(rc.controllerIndexers.GetContainerInfosForImage)
 	registry := providers.NewProviderChain(
-		amazon.NewProvider(),
+		amazon.NewProvider(awsRegion),
 		k8s.NewProvider(rc.controllerIndexers.GetImagePullSecrets),
 	)
 	rc.providerRegistry = registry

@@ -21,8 +21,8 @@ type Provider struct {
 	name            string
 }
 
-func NewProvider() *Provider {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(requestEC2Region()))
+func NewProvider(awsRegion string) *Provider {
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(requestEC2Region(awsRegion)))
 	if err != nil {
 		logrus.Warn("error while loading config for new aws provider ", err)
 	}
@@ -71,7 +71,11 @@ func (p *Provider) GetAuthKeychain(_ string) (authn.Keychain, error) {
 	return &customKeychain{authenticator: authn.FromConfig(p.authToken)}, nil
 }
 
-func requestEC2Region() string {
+func requestEC2Region(awsRegion string) string {
+	if awsRegion != "" {
+		return awsRegion
+	}
+
 	ec2metadataClient := ec2metadata.New("http://169.254.169.254", 1)
 	metadata := ec2metadataClient.GetNodeMetadata()
 
