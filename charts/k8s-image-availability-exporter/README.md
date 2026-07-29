@@ -61,8 +61,9 @@ This chart bootstraps a [k8s-image-availability-exporter](https://github.com/fla
 | prometheusRule.enabled | bool | `false` | Create [Prometheus Operator](https://github.com/coreos/prometheus-operator) prometheusRule resource |
 | prometheusRule.defaultGroupsEnabled | bool | `true` | Setup default alerts (works only if prometheusRule.enabled is set to true) |
 | prometheusRule.for | string | `""` | Optional duration for which the condition must be true before firing. If not set, alerts fire immediately. |
-Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 | prometheusRule.additionalGroups | list | `[]` | Additional PrometheusRule groups |
+
+Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
 ```bash
 helm install my-release k8s-image-availability-exporter --set k8sImageAvailabilityExporter.replicas=2
