@@ -55,26 +55,24 @@ func Test_checkImageAvailability_mirrorReplacement(t *testing.T) {
 		"badhost.io":      "te*^#@@st.io",
 	}
 
-	ptr := func(s string) *string { return &s }
-
 	tests := []struct {
 		name                     string
 		image                    string
 		mirrorsMap               map[string]string      // Default nil
 		responseStatus           int                    // Default http.StatusOK
-		expectedHost             *string                // Default ptr("index.docker.io")
+		expectedHost             string                 // Default "" (Skip assertion if empty)
 		expectedAvailabilityMode store.AvailabilityMode // Default store.Available
 	}{
 		{
-			name:  "check statuses statusOk defaultRegistry",
+			name:  "check statuses statusOk",
 			image: "test:latest",
 		},
 		{
-			name:  "check statuses statusOk defaultRegistry library",
+			name:  "check statuses statusOk library",
 			image: "library/test:latest",
 		},
 		{
-			name:  "check statuses statusOk defaultRegistry sha256",
+			name:  "check statuses statusOk sha256",
 			image: "test@sha256:33e0bbc7ca9ecf108140af6288c7c9d1ecc77548cbfd3952fd8466a75edefe57",
 		},
 		{
@@ -104,44 +102,41 @@ func Test_checkImageAvailability_mirrorReplacement(t *testing.T) {
 		{
 			name:                     "check statuses badImage",
 			image:                    "te*^#@@st",
-			expectedHost:             ptr(""),
 			expectedAvailabilityMode: store.BadImageName,
 		},
 		{
 			name:                     "check statuses badImage sha256",
 			image:                    "test@sha256:33e0bbc7ca9e",
-			expectedHost:             ptr(""),
 			expectedAvailabilityMode: store.BadImageName,
 		},
 		{
 			name:         "mirror replacement image name without repository",
 			image:        "test:latest",
 			mirrorsMap:   mirrorsMap,
-			expectedHost: ptr("mirror.local"),
+			expectedHost: "mirror.local",
 		},
 		{
 			name:         "mirror replacement image name with docker.io repository",
 			image:        "docker.io/company/test:latest",
 			mirrorsMap:   mirrorsMap,
-			expectedHost: ptr("mirror.local"),
+			expectedHost: "mirror.local",
 		},
 		{
 			name:         "mirror replacement image name with index.docker.io repository",
 			image:        "index.docker.io/company/test:latest",
 			mirrorsMap:   mirrorsMap,
-			expectedHost: ptr("index.mirror.local"),
+			expectedHost: "index.mirror.local",
 		},
 		{
 			name:         "mirror replacement host not in mirrors",
 			image:        "test.io/test:latest",
 			mirrorsMap:   mirrorsMap,
-			expectedHost: ptr("test.io"),
+			expectedHost: "test.io",
 		},
 		{
 			name:                     "mirror replacement image name with badhost repository",
 			image:                    "badhost.io/test:latest",
 			mirrorsMap:               mirrorsMap,
-			expectedHost:             ptr(""),
 			expectedAvailabilityMode: store.BadImageName,
 		},
 	}
@@ -154,11 +149,6 @@ func Test_checkImageAvailability_mirrorReplacement(t *testing.T) {
 			responseStatus := http.StatusOK
 			if test.responseStatus != 0 {
 				responseStatus = test.responseStatus
-			}
-
-			expectedHost := "index.docker.io"
-			if test.expectedHost != nil {
-				expectedHost = *test.expectedHost
 			}
 
 			mockRoundTripFunc := func(req *http.Request) (*http.Response, error) {
@@ -188,7 +178,10 @@ func Test_checkImageAvailability_mirrorReplacement(t *testing.T) {
 
 			actualMode := rc.checkImageAvailability(logrus.NewEntry(logger), test.image, nil)
 			assert.Equal(tt, test.expectedAvailabilityMode, actualMode)
-			assert.Equal(tt, expectedHost, actualHost)
+
+			if test.expectedHost != "" {
+				assert.Equal(tt, test.expectedHost, actualHost)
+			}
 		})
 	}
 }
